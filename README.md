@@ -22,7 +22,7 @@
 
 # 🔎 (Better) GPT Researcher
 
-**GPT Researcher the first open deep research agent designed for both web and local research on any given task. This fork adds on top of the default configuration: crawl4ai as scraper, open-ai compatible image generators, and fixes large embeddings errors.** 
+**GPT Researcher the first open deep research agent designed for both web and local research on any given task. This fork adds on top of the default configuration: crawl4ai as scraper, open-ai compatible image generators, and various other small improvements.** 
 
 The agent produces detailed, factual, and unbiased research reports with citations. GPT Researcher provides a full suite of customization options to create tailor made and domain specific research agents. Inspired by the recent [Plan-and-Solve](https://arxiv.org/abs/2305.04091) and [RAG](https://arxiv.org/abs/2005.11401) papers, GPT Researcher addresses misinformation, speed, determinism, and reliability by offering stable performance and increased speed through parallelized agent work.
 
@@ -200,7 +200,7 @@ IMAGE_GENERATION_ENABLED=true
 IMAGE_GENERATION_PROVIDER=google # or openai
 IMAGE_GENERATION_API_KEY=your_image_generator_api_key
 IMAGE_GENERATION_MODEL=models/gemini-2.5-flash-image
-IMAGE_GENERATION_BASE_URL=https://.../v1/images/ # specify only if provider is openai
+IMAGE_GENERATION_BASE_URL=https://... # specify only if provider is openai
 ```
 
 When enabled, the system will:
