@@ -49,3 +49,16 @@ def estimate_embedding_cost(model: str, docs: list) -> float:
     total_tokens = sum(len(encoding.encode(str(doc))) for doc in docs)
     return total_tokens * EMBEDDING_COST
 
+
+def estimate_tokens(text: str) -> int:
+    """Estimate token count for text using tiktoken.
+
+    Args:
+        text: The text to count tokens for.
+
+    Returns:
+        Estimated token count.
+    """
+    encoding = tiktoken.get_encoding(ENCODING_MODEL)
+    return len(encoding.encode(text))
+
