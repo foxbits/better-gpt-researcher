@@ -82,23 +82,67 @@ class VectorstoreCompressor:
 
 
 class IndividualEmbeddingFilter:
-    """Filters documents by embedding similarity using individual embeddings.
+    """Filters documents by embedding similarity using batched embeddings.
 
-    This filter embeds documents one-by-one to avoid context_length_exceeded errors
-    with embedding models that have strict token limits (e.g., BAAI/bge-m3 at 8192).
+    Groups documents into token-aware batches to minimize API calls while
+    staying within embedding model token limits.
     """
 
     def __init__(self, embeddings, similarity_threshold: float):
         self.embeddings = embeddings
         self.similarity_threshold = similarity_threshold
 
+    def _create_batches(
+        self, documents: list[Document], max_tokens: int = 7000
+    ) -> list[list[Document]]:
+        """Group documents into batches that fit within token limit."""
+        batches = []
+        current_batch = []
+        current_tokens = 0
+
+        for doc in documents:
+            doc_tokens = estimate_tokens(doc.page_content)
+
+            if doc_tokens > max_tokens:
+                if current_batch:
+                    batches.append(current_batch)
+                    current_batch = []
+                    current_tokens = 0
+                sub_chunks = self._split_oversized(doc, max_tokens)
+                for chunk in sub_chunks:
+                    chunk_tokens = estimate_tokens(chunk.page_content)
+                    if chunk_tokens > max_tokens:
+                        continue
+                    if current_tokens + chunk_tokens > max_tokens:
+                        batches.append(current_batch)
+                        current_batch = []
+                        current_tokens = 0
+                    current_batch.append(chunk)
+                    current_tokens += chunk_tokens
+            else:
+                if current_tokens + doc_tokens > max_tokens:
+                    batches.append(current_batch)
+                    current_batch = []
+                    current_tokens = 0
+                current_batch.append(doc)
+                current_tokens += doc_tokens
+
+        if current_batch:
+            batches.append(current_batch)
+
+        return batches
+
+    def _split_oversized(self, doc: Document, max_tokens: int) -> list[Document]:
+        """Split an oversized document into smaller chunks."""
+        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        return splitter.split_documents([doc])
+
     async def acompress_documents(
         self, documents: list[Document], query: str
     ) -> list[Document]:
-        """Filter documents by similarity to query using individual embeddings.
+        """Filter documents by similarity using batched embeddings.
 
-        Oversized documents are split into smaller chunks before embedding to ensure
-        all content is processed.
+        Embeds documents in token-aware batches to minimize API calls.
 
         Args:
             documents: List of documents to filter.
@@ -107,41 +151,27 @@ class IndividualEmbeddingFilter:
         Returns:
             List of documents that meet the similarity threshold.
         """
+        batches = self._create_batches(documents)
         query_embedding = await asyncio.to_thread(self.embeddings.embed_query, query)
+        doc_embeddings: list[tuple[Document, list[float]]] = []
+
+        for batch in batches:
+            try:
+                texts = [doc.page_content for doc in batch]
+                embeddings = await asyncio.to_thread(
+                    self.embeddings.embed_documents, texts
+                )
+                for i, doc in enumerate(batch):
+                    doc_embeddings.append((doc, embeddings[i]))
+            except Exception:
+                continue
+
         relevant_docs = []
-        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-
-        for doc in documents:
-            doc_tokens = estimate_tokens(doc.page_content)
-
-            if doc_tokens > MAX_EMBEDDING_TOKENS:
-                sub_chunks = splitter.split_documents([doc])
-                for sub_chunk in sub_chunks:
-                    sub_tokens = estimate_tokens(sub_chunk.page_content)
-                    if sub_tokens > MAX_EMBEDDING_TOKENS:
-                        continue
-                    try:
-                        sub_embedding = await asyncio.to_thread(
-                            self.embeddings.embed_query, sub_chunk.page_content
-                        )
-                        similarity = self._cosine_similarity(query_embedding, sub_embedding)
-                        sub_chunk.metadata["similarity_score"] = similarity
-                        sub_chunk.metadata["parent_title"] = doc.metadata.get("title", "")
-                        relevant_docs.append(sub_chunk)
-                    except Exception:
-                        continue
-            else:
-                try:
-                    doc_embedding = await asyncio.to_thread(
-                        self.embeddings.embed_query, doc.page_content
-                    )
-                    similarity = self._cosine_similarity(query_embedding, doc_embedding)
-
-                    if similarity >= self.similarity_threshold:
-                        doc.metadata["similarity_score"] = similarity
-                        relevant_docs.append(doc)
-                except Exception:
-                    continue
+        for doc, embedding in doc_embeddings:
+            similarity = self._cosine_similarity(query_embedding, embedding)
+            if similarity >= self.similarity_threshold:
+                doc.metadata["similarity_score"] = similarity
+                relevant_docs.append(doc)
 
         return relevant_docs
 
