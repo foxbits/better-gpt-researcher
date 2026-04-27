@@ -93,7 +93,7 @@ class IndividualEmbeddingFilter:
         self.similarity_threshold = similarity_threshold
 
     def _create_batches(
-        self, documents: list[Document], max_tokens: int = 7000
+        self, documents: list[Document], max_tokens: int = MAX_EMBEDDING_TOKENS
     ) -> list[list[Document]]:
         """Group documents into batches that fit within token limit."""
         batches = []
