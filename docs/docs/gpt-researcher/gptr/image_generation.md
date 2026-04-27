@@ -29,7 +29,7 @@ IMAGE_GENERATION_API_KEY=your_image_generator_api_key_here
 IMAGE_GENERATION_PROVIDER=google
 
 # Optional (required when provider is openai)
-IMAGE_GENERATION_BASE_URL=https:///...../v1/images
+IMAGE_GENERATION_BASE_URL=https:///.....
 
 # Optional: Specify the model (default shown)
 IMAGE_GENERATION_MODEL=models/gemini-2.5-flash-image
@@ -101,7 +101,7 @@ Research Phase          Image Planning          Report Writing
 | `IMAGE_GENERATION_ENABLED` | `false` | Master switch to enable/disable |
 | `IMAGE_GENERATION_API_KEY` | - | Your image generator provider API key (required) |
 | `IMAGE_GENERATION_PROVIDER` | `google` | Switch between google as provider or openai for openai compatible |
-| `IMAGE_GENERATION_BASE_URL` | `https://.../v1/images` | Required if provider is openai |
+| `IMAGE_GENERATION_BASE_URL` | `https://...` | Required if provider is openai |
 | `IMAGE_GENERATION_MODEL` | `models/gemini-2.5-flash-image` | What model to use from the given provider |
 | `IMAGE_GENERATION_MAX_IMAGES` | `3` | Maximum images per report |
 | `IMAGE_GENERATION_STYLE` | `dark` | Image style: `dark`, `light`, `auto` |

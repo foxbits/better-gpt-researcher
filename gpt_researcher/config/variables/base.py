@@ -17,6 +17,7 @@ class BaseConfig(TypedDict):
     TEMPERATURE: float
     USER_AGENT: str
     MAX_SEARCH_RESULTS_PER_QUERY: int
+    MIN_RAW_CONTENT_LENGTH: int
     MEMORY_BACKEND: str
     TOTAL_WORDS: int
     REPORT_FORMAT: str

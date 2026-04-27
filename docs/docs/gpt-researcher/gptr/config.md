@@ -66,6 +66,7 @@ Below is a list of current supported options:
 - **`TEMPERATURE`**: Sampling temperature for LLM responses, typically between 0 and 1. A higher value results in more randomness and creativity, while a lower value results in more focused and deterministic responses. Defaults to `0.4`.
 - **`USER_AGENT`**: Custom User-Agent string for web crawling and web requests.
 - **`MAX_SEARCH_RESULTS_PER_QUERY`**: Maximum number of search results to retrieve per query. Defaults to `5`.
+- **`MIN_RAW_CONTENT_LENGTH`**: Minimum length of content returned by search engine considered enough (if below this, will scrape the website using the configured scraping engine). Defaults to 300.
 - **`MEMORY_BACKEND`**: Backend used for memory operations, such as local storage of temporary data. Defaults to `local`.
 - **`TOTAL_WORDS`**: Total word count limit for document generation or processing tasks. Defaults to `1200`.
 - **`REPORT_FORMAT`**: Preferred format for report generation. Defaults to `APA`. Consider formats like `MLA`, `CMS`, `Harvard style`, `IEEE`, etc.

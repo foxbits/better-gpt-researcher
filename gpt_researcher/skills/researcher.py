@@ -777,7 +777,7 @@ class ResearchConductor:
                 for result in search_results:
                     url = result.get("href") or result.get("url")
                     raw_content = result.get("raw_content") or result.get("body")
-                    if url and raw_content and len(raw_content) > 100:
+                    if url and raw_content and len(raw_content) > self.researcher.cfg.min_raw_content_length:
                         # Retriever already fetched full content (e.g. PubMed Central)
                         prefetched_content.append({
                             "url": url,

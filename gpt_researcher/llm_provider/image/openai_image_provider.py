@@ -1,8 +1,8 @@
 """
 OpenAI-compatible image generation provider for GPT Researcher.
 
-Supports any OpenAI-compatible API endpoint (nano-gpt.com, local servers, etc.)
-for image generation via the /v1/images/generations endpoint.
+Supports any OpenAI-compatible API endpoint (wavespeed.ai, local servers, etc.)
+for image generation via the /images/generations endpoint.
 """
 
 import asyncio
