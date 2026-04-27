@@ -29,7 +29,7 @@ from ..vector_store import VectorStoreWrapper
 from .retriever import SearchAPIRetriever, SectionRetriever
 
 
-MAX_EMBEDDING_TOKENS = 8192  # BGE-M3 max tokens - set to 8192 for compatibility with strict embedding models like BAAI/bge-m3
+MAX_EMBEDDING_TOKENS = 7500  # max tokens for embeddings, usually around 8000 but leaving buffer for metadata and estimations
 
 
 class VectorstoreCompressor:
@@ -95,37 +95,35 @@ class IndividualEmbeddingFilter:
     def _create_batches(
         self, documents: list[Document], max_tokens: int = MAX_EMBEDDING_TOKENS
     ) -> list[list[Document]]:
-        """Group documents into batches that fit within token limit."""
+        """Group documents into batches that fit within token limit.
+
+        Only splits documents that individually exceed the token limit.
+        All other documents are kept intact and batched by token count.
+        """
+        # First, split only oversized documents into token-safe chunks
+        flat_docs = []
+        for doc in documents:
+            doc_tokens = estimate_tokens(doc.page_content)
+            if doc_tokens > max_tokens:
+                flat_docs.extend(self._split_oversized(doc, max_tokens))
+            else:
+                flat_docs.append(doc)
+
+        # Then batch by token count
         batches = []
         current_batch = []
         current_tokens = 0
 
-        for doc in documents:
+        for doc in flat_docs:
             doc_tokens = estimate_tokens(doc.page_content)
-
             if doc_tokens > max_tokens:
-                if current_batch:
-                    batches.append(current_batch)
-                    current_batch = []
-                    current_tokens = 0
-                sub_chunks = self._split_oversized(doc, max_tokens)
-                for chunk in sub_chunks:
-                    chunk_tokens = estimate_tokens(chunk.page_content)
-                    if chunk_tokens > max_tokens:
-                        continue
-                    if current_tokens + chunk_tokens > max_tokens:
-                        batches.append(current_batch)
-                        current_batch = []
-                        current_tokens = 0
-                    current_batch.append(chunk)
-                    current_tokens += chunk_tokens
-            else:
-                if current_tokens + doc_tokens > max_tokens:
-                    batches.append(current_batch)
-                    current_batch = []
-                    current_tokens = 0
-                current_batch.append(doc)
-                current_tokens += doc_tokens
+                continue
+            if current_tokens + doc_tokens > max_tokens:
+                batches.append(current_batch)
+                current_batch = []
+                current_tokens = 0
+            current_batch.append(doc)
+            current_tokens += doc_tokens
 
         if current_batch:
             batches.append(current_batch)
@@ -138,18 +136,22 @@ class IndividualEmbeddingFilter:
         return splitter.split_documents([doc])
 
     async def acompress_documents(
-        self, documents: list[Document], query: str
+        self, documents: list[Document], query: str, fallback_top_k: int = 10
     ) -> list[Document]:
         """Filter documents by similarity using batched embeddings.
 
         Embeds documents in token-aware batches to minimize API calls.
+        All documents get similarity scores. If none pass the threshold,
+        the top ``fallback_top_k`` by score are returned as a fallback.
 
         Args:
             documents: List of documents to filter.
             query: Query to compare document relevance against.
+            fallback_top_k: Number of top-scoring docs to return
+                when threshold filtering returns nothing.
 
         Returns:
-            List of documents that meet the similarity threshold.
+            List of documents sorted by similarity (descending).
         """
         batches = self._create_batches(documents)
         query_embedding = await asyncio.to_thread(self.embeddings.embed_query, query)
@@ -166,14 +168,31 @@ class IndividualEmbeddingFilter:
             except Exception:
                 continue
 
-        relevant_docs = []
+        scored_docs: list[tuple[Document, float]] = []
         for doc, embedding in doc_embeddings:
             similarity = self._cosine_similarity(query_embedding, embedding)
-            if similarity >= self.similarity_threshold:
-                doc.metadata["similarity_score"] = similarity
-                relevant_docs.append(doc)
+            scored_docs.append((doc, similarity))
 
-        return relevant_docs
+        # Sort all docs by similarity descending
+        scored_docs.sort(key=lambda x: x[1], reverse=True)
+
+        # Threshold-filtered docs
+        filtered = [
+            (doc, score)
+            for doc, score in scored_docs
+            if score >= self.similarity_threshold
+        ]
+
+        if filtered:
+            for doc, score in filtered:
+                doc.metadata["similarity_score"] = score
+            return [doc for doc, _ in filtered]
+        else:
+            # Fallback: return top-k regardless of threshold
+            fallback = scored_docs[:fallback_top_k]
+            for doc, score in fallback:
+                doc.metadata["similarity_score"] = score
+            return [doc for doc, _ in fallback]
 
     def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         dot = sum(a * b for a, b in zip(vec1, vec2))
@@ -260,7 +279,7 @@ class ContextCompressor:
         if cost_callback:
             cost_callback(estimate_embedding_cost(model=OPENAI_EMBEDDING_MODEL, docs=self.documents))
 
-        relevant_docs = await embedding_filter.acompress_documents(all_chunks, query)
+        relevant_docs = await embedding_filter.acompress_documents(all_chunks, query, fallback_top_k=max_results)
 
         relevant_docs.sort(key=lambda d: d.metadata.get("similarity_score", 0), reverse=True)
         return self.prompt_family.pretty_print_docs(relevant_docs[:max_results], max_results)
@@ -320,7 +339,7 @@ class WrittenContentCompressor:
         if cost_callback:
             cost_callback(estimate_embedding_cost(model=OPENAI_EMBEDDING_MODEL, docs=self.documents))
 
-        relevant_docs = await embedding_filter.acompress_documents(sections, query)
+        relevant_docs = await embedding_filter.acompress_documents(sections, query, fallback_top_k=max_results)
 
         relevant_docs.sort(key=lambda d: d.metadata.get("similarity_score", 0), reverse=True)
         return self._pretty_docs_list(relevant_docs, max_results)
