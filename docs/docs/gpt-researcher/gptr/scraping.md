@@ -171,6 +171,13 @@ Usage Considerations:
 - Ideal for businesses and applications that need consistent scraping results
 - Need robust scraping option for personal use
 
+### Crawl4AI (Recommended for home-labs, even prod)
+When `SCRAPER="crawl4ai"`, GPT Researcher uses [Crawl4AI](https://github.com/unclecode/crawl4ai) Scrape API for web scraping in markdown format (with media extraction).
+
+Setup:
+1. Configure an instance of [Crawl4AI](https://github.com/unclecode/crawl4ai)
+2. Set `CRAWL4AI_API_URL` to point to the crawl4ai server
+
 ## Additional Setup for Selenium
 
 If you choose to use Selenium (SCRAPER="browser"), you'll need to:
