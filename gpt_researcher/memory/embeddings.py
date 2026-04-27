@@ -26,7 +26,7 @@ import os
 from typing import Any
 
 OPENAI_EMBEDDING_MODEL = os.environ.get(
-    "OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"
+    "EMBEDDING", "text-embedding-3-small"
 )
 
 _SUPPORTED_PROVIDERS = {
