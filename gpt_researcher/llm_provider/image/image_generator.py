@@ -55,11 +55,11 @@ class ImageGeneratorProvider:
         
         Args:
             model_name: The model to use. Defaults to models/gemini-2.5-flash-image.
-            api_key: Google API key. If not provided, reads from GOOGLE_API_KEY env var.
+            api_key: Google API key. If not provided, reads from IMAGE_GENERATION_API_KEY, GOOGLE_API_KEY or GEMINI_API_KEY env vars.
             output_dir: Base directory for outputs (images will be in output_dir/images/).
         """
         self.model_name = model_name or self.DEFAULT_MODEL
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        self.api_key = api_key or os.getenv("IMAGE_GENERATION_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         self.output_dir = Path(output_dir)
         self._client = None
         
@@ -68,7 +68,7 @@ class ImageGeneratorProvider:
         
         if not self.api_key:
             logger.warning(
-                "No Google API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY "
+                "No Google API key found. Set IMAGE_GENERATION_API_KEY, GOOGLE_API_KEY or GEMINI_API_KEY "
                 "environment variable to enable image generation."
             )
     

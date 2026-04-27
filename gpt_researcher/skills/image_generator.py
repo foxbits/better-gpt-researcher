@@ -11,7 +11,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..actions.utils import stream_output
-from ..llm_provider.image import ImageGeneratorProvider
+from ..llm_provider.image import get_image_provider
 from ..utils.llm import create_chat_completion
 
 logger = logging.getLogger(__name__)
@@ -49,10 +49,13 @@ class ImageGenerator:
         """Initialize the image generation provider from config."""
         model = getattr(self.cfg, 'image_generation_model', None)
         enabled = getattr(self.cfg, 'image_generation_enabled', False)
+        provider_type = getattr(self.cfg, 'image_generation_provider', 'google')
+        base_url = getattr(self.cfg, 'image_generation_base_url', None)
+        api_key = getattr(self.cfg, 'image_generation_api_key', None)
         
         if model and enabled:
             try:
-                self.image_provider = ImageGeneratorProvider(model_name=model)
+                self.image_provider = get_image_provider(model_name=model, provider_type=provider_type, base_url=base_url, api_key=api_key)
                 if self.image_provider.is_available():
                     logger.info(f"Image generation enabled with model: {model}")
                 else:

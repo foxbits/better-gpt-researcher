@@ -22,8 +22,14 @@ When enabled, GPT Researcher will:
 # Required: Enable the feature
 IMAGE_GENERATION_ENABLED=true
 
-# Required: Your Google API key
-GOOGLE_API_KEY=your_google_api_key_here
+# Required: Your Image generator provider API key
+IMAGE_GENERATION_API_KEY=your_image_generator_api_key_here
+
+# Optional (defaults to google) - google or openai (for open-ai compatible)
+IMAGE_GENERATION_PROVIDER=google
+
+# Optional (required when provider is openai)
+IMAGE_GENERATION_BASE_URL=https:///...../v1/images
 
 # Optional: Specify the model (default shown)
 IMAGE_GENERATION_MODEL=models/gemini-2.5-flash-image
@@ -93,8 +99,10 @@ Research Phase          Image Planning          Report Writing
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `IMAGE_GENERATION_ENABLED` | `false` | Master switch to enable/disable |
-| `GOOGLE_API_KEY` | - | Your Google API key (required) |
-| `IMAGE_GENERATION_MODEL` | `models/gemini-2.5-flash-image` | Gemini model to use |
+| `IMAGE_GENERATION_API_KEY` | - | Your image generator provider API key (required) |
+| `IMAGE_GENERATION_PROVIDER` | `google` | Switch between google as provider or openai for openai compatible |
+| `IMAGE_GENERATION_BASE_URL` | `https://.../v1/images` | Required if provider is openai |
+| `IMAGE_GENERATION_MODEL` | `models/gemini-2.5-flash-image` | What model to use from the given provider |
 | `IMAGE_GENERATION_MAX_IMAGES` | `3` | Maximum images per report |
 | `IMAGE_GENERATION_STYLE` | `dark` | Image style: `dark`, `light`, `auto` |
 
@@ -183,7 +191,7 @@ When using the web interface, these events are emitted:
 ### Images Not Generating
 
 1. Verify `IMAGE_GENERATION_ENABLED=true`
-2. Check that `GOOGLE_API_KEY` is set and valid
+2. Check that `IMAGE_GENERATION_API_KEY` is set and valid
 3. Ensure model name is correct (include `models/` prefix for Gemini)
 4. Check logs for API errors
 
