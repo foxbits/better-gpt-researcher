@@ -197,8 +197,10 @@ GPT Researcher can automatically generate and embed AI-created illustrations in 
 ```bash
 # Enable in your .env file
 IMAGE_GENERATION_ENABLED=true
-GOOGLE_API_KEY=your_google_api_key
+IMAGE_GENERATION_PROVIDER=google # or openai
+IMAGE_GENERATION_API_KEY=your_image_generator_api_key
 IMAGE_GENERATION_MODEL=models/gemini-2.5-flash-image
+IMAGE_GENERATION_BASE_URL=https://.../v1/images/ # specify only if provider is openai
 ```
 
 When enabled, the system will:

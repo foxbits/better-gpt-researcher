@@ -161,7 +161,7 @@ DEFAULT_CONFIG: BaseConfig = {
 ```python
 class ImageGeneratorProvider:
     def __init__(self, api_key: str = None, model: str = None):
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        self.api_key = api_key or os.getenv("IMAGE_GENERATION_API_KEY")
         self.model = model or "models/gemini-2.5-flash-image"
         self._client = None
     
@@ -206,7 +206,7 @@ class ImageGenerator:
         self.researcher = researcher
         self.config = researcher.cfg
         self.image_provider = ImageGeneratorProvider(
-            api_key=os.getenv("GOOGLE_API_KEY"),
+            api_key=os.getenv("IMAGE_GENERATION_API_KEY"),
             model=getattr(self.config, 'image_generation_model', None),
         )
         self.max_images = getattr(self.config, 'image_generation_max_images', 3)
