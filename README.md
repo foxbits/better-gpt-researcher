@@ -20,9 +20,9 @@
 
 </div>
 
-# 🔎 GPT Researcher
+# 🔎 (Better) GPT Researcher
 
-**GPT Researcher the first open deep research agent designed for both web and local research on any given task.** 
+**GPT Researcher the first open deep research agent designed for both web and local research on any given task. This fork adds on top of the default configuration: crawl4ai as scraper, open-ai compatible image generators, and fixes large embeddings errors.** 
 
 The agent produces detailed, factual, and unbiased research reports with citations. GPT Researcher provides a full suite of customization options to create tailor made and domain specific research agents. Inspired by the recent [Plan-and-Solve](https://arxiv.org/abs/2305.04091) and [RAG](https://arxiv.org/abs/2005.11401) papers, GPT Researcher addresses misinformation, speed, determinism, and reliability by offering stable performance and increased speed through parallelized agent work.
 
