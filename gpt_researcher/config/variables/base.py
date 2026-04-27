@@ -44,6 +44,9 @@ class BaseConfig(TypedDict):
     MCP_STRATEGY: str
     REASONING_EFFORT: str
     # Image generation settings
+    IMAGE_GENERATION_PROVIDER: str  # "google" (default) or "openai"
+    IMAGE_GENERATION_BASE_URL: str # Base URL for the image generation API provider
+    IMAGE_GENERATION_API_KEY: str # API key for the image generation API provider
     IMAGE_GENERATION_MODEL: Union[str, None]
     IMAGE_GENERATION_MAX_IMAGES: int
     IMAGE_GENERATION_ENABLED: bool

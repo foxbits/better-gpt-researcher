@@ -44,7 +44,10 @@ DEFAULT_CONFIG: BaseConfig = {
     "MCP_STRATEGY": "fast",  # MCP execution strategy: "fast", "deep", "disabled"
     "REASONING_EFFORT": "medium",
     
-    # Image generation settings (optional - requires GOOGLE_API_KEY)
+    # Image generation settings (optional
+    "IMAGE_GENERATION_PROVIDER": "google",  # "google" (default) or "openai" for open-ai compatible providers
+    "IMAGE_GENERATION_BASE_URL": "", # Base URL for the image generation API provider (only needed for non-Google providers)
+    "IMAGE_GENERATION_API_KEY": "", # API key for the image generation API provider (Google API key or OpenAI API key depending on provider)
     # Free tier models: gemini-2.5-flash-image, gemini-2.0-flash-exp-image-generation
     # Paid tier models: imagen-4.0-generate-001, imagen-4.0-fast-generate-001
     "IMAGE_GENERATION_MODEL": "models/gemini-2.5-flash-image",
